@@ -4,7 +4,6 @@
 #include<iostream>
 #include<fstream>
 #include<vector>
-#include<string.h>
 
 using namespace std;
 
@@ -348,8 +347,6 @@ void drawFloor()
     glPopMatrix();
 }
 
-
-
 void mydisplay()
 {
     glClearColor(1.0, 1.0, 1.0, 1.0);
@@ -461,6 +458,7 @@ void keyboard (unsigned char key, int x, int y)
 int main(int argc, char* argv[])
 {
 
+    /*
     char filename[80];
     strcpy(filename, argv[1]);
     strcat (filename," ");
@@ -468,11 +466,12 @@ int main(int argc, char* argv[])
     {
         strcat (filename,argv[i]);
         strcat (filename," ");
-    }
+    }*/
+
 
     ifstream file;
     //file.open("mocap 08_01.bvh");
-    file.open(filename);
+    file.open(argv[1]);
 
     skeleton = new HIERARCY;
 
