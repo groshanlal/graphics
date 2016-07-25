@@ -13,6 +13,7 @@ GLfloat zoom = 1.0;
 int mouseButton = 0;
 int moving, startx, starty;
 bool play = true;
+int realign=0;
 
 
 void mydisplay()
@@ -34,12 +35,39 @@ void mydisplay()
 	glScalef(zoom,zoom,zoom);
 
 
-    glRotatef(15,0,1,0);
-    glRotatef(15,1,0,0);
+    //glRotatef(15,0,1,0);
+    //glRotatef(15,1,0,0);
 
     drawFloor();
 
+
+    glColor3f(0,1,0);
+    glBegin(GL_POLYGON);
+        glVertex3f(0,0,0);
+        glVertex3f(0,100,0);
+        glVertex3f(10,100,0);
+        glVertex3f(10,0,0);
+    glEnd();
+
+
+    for(int i=0;i<realign;i++)
+    {
+        realignXZ();
+    }
+
+    /*
+    glBegin(GL_POLYGON);
+        glVertex3f(0,0,0);
+        glVertex3f(0,100,0);
+        glVertex3f(10,100,0);
+        glVertex3f(10,0,0);
+    glEnd();
+    */
+
+    //cout<<showHierarchy()->type<<": "<<frame<<endl;
     drawHierarchy(showHierarchy(), frame);
+
+    //drawTransFrame(showHierarchy(),10, 200);
 
     glFlush();
 
@@ -58,14 +86,36 @@ void idle()
     if(play)
         frame++;
 
-    if(frame>showHierarchy()->noFrames)
+
+
+
+
+    /*
+    if((frame>134)&&(showHierarchy()->type == "ACTUAL"))
+    {
+        switch_toTrans();
+        frame=0;
+        //exit(0);
+    }
+
+    if((frame>39)&&(showHierarchy()->type == "TRANSIENT"))
+    {
+        switch_toAct();
+        frame=42;
+        realign++;
+        //exit(0);
+    }
+    */
+
+
+
+    if(frame>=showHierarchy()->noFrames)
     {
         frame=0;
         //exit(0);
     }
 
 
-    //cout<<frame<<endl;
     glutPostRedisplay();
 
 }

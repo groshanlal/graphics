@@ -1,0 +1,1 @@
+g++ -o main.exe main.cpp bvh.cpp render.cpp graphics.cpp motion_graph.cpp -lglut32 -lopengl32
