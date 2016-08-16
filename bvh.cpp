@@ -1,4 +1,4 @@
-#include<Windows.h>
+//#include<Windows.h>
 #include<GL/glut.h>
 
 #include<fstream>
@@ -7,13 +7,12 @@
 #include<vector>
 
 #include "bvh.hpp"
-#include "motion_graph.hpp"
+#include "transitions.hpp"
 #include "graphics.hpp"
-
+#include "MotionGraph.hpp"
 using namespace std;
 
 HIERARCY* skeleton=new HIERARCY;
-
 float theta0, x0, z0;
 
 float* act_animation;
@@ -24,6 +23,7 @@ HIERARCY* showHierarchy()
     return skeleton;
 }
 
+/*
 void switch_toAct()
 {
     skeleton->animation=act_animation;
@@ -35,27 +35,36 @@ void switch_toTrans()
     skeleton->animation=trans_animation;
     skeleton->type="TRANSIENT";
 }
-
+*/
 void realignXZ()
 {
     glTranslatef(x0,0,z0);
     glRotatef(theta0/3.14159*180,0,1,0);
     //cout<<theta0<<": "<<x0<<", "<<z0<<endl;
 }
+
 void loadBvh(ifstream* file)
 {
     loadHierarchy(skeleton, file);
     loadMotion(skeleton, file);
 
-    skeleton->type="ACTUAL";
 
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
 
-
+    /*
+    float modelview[16];
+    glGetFloatv(GL_MODELVIEW_MATRIX , modelview);
+    cout<<"Model-View Matrix:\n";
+    for(int i=0;i<4;i++)
+    {
+        for(int j=0;j<4;j++)
+            cout<<modelview[4*j+i]<<", ";
+        cout<<endl;
+    }
+    */
 
     for(int i=0;i<skeleton->noFrames;i++)
     {
@@ -64,61 +73,9 @@ void loadBvh(ifstream* file)
         glPopMatrix();
     }
 
-
     //errmatrix(skeleton);
 
-
-    align(&theta0, &x0, &z0, 134, 2, skeleton);
-    //cout<<theta0<<", "<<x0<<", "<<z0<<endl;
-
-    act_animation=skeleton->animation;
-
-    int transient_length = skeleton->frameRate/3;
-    trans_animation = new float[(transient_length)*(skeleton->totnumChannels)];
-
-    float alpha;
-
-    for(int i=0;i<transient_length;i++)
-    {
-        alpha = 2*((i+1)/transient_length)*((i+1)/transient_length)*((i+1)/transient_length) - 3*((i+1)/transient_length)*((i+1)/transient_length) + 1;
-
-        float x2=act_animation[(2+i)*(skeleton->totnumChannels)+0];
-        float y2=act_animation[(2+i)*(skeleton->totnumChannels)+1];
-        float z2=act_animation[(2+i)*(skeleton->totnumChannels)+2];
-
-        point a(x2,y2,z2);
-        point b=a.trans(theta0, x0, z0);
-        x2=b.x;
-        y2=b.y;
-        z2=b.z;
-
-        float x1=act_animation[(134+i)*(skeleton->totnumChannels)+0];
-        float y1=act_animation[(134+i)*(skeleton->totnumChannels)+1];
-        float z1=act_animation[(134+i)*(skeleton->totnumChannels)+2];
-
-        trans_animation[(i)*(skeleton->totnumChannels)+0] = alpha*x1 + (1-alpha)*x2;
-        trans_animation[(i)*(skeleton->totnumChannels)+1] = alpha*y1 + (1-alpha)*y2;
-        trans_animation[(i)*(skeleton->totnumChannels)+2] = alpha*z1 + (1-alpha)*z2;
-
-        for(int j=3;j<skeleton->totnumChannels;j++)
-        {
-            float theta1 = act_animation[(134+i)*(skeleton->totnumChannels)+ j];
-            float theta2 = act_animation[(2+i)*(skeleton->totnumChannels)+ j];
-            trans_animation[(i)*(skeleton->totnumChannels)+j] = alpha*theta1 + (1-alpha)*theta2;
-        }
-
-        /*
-        for(int j=0;j<skeleton->totnumChannels;j++)
-        {
-            cout<<trans_animation[(i)*(skeleton->totnumChannels)+j]<<" ";
-        }
-        cout<<endl;
-        */
-
-
-
-    }
-
+    //initialize_mog();
 
 
 }
@@ -340,7 +297,7 @@ void genPointCloud(JOINT* joint, HIERARCY* skeleton, int frame)
 
         glTranslatef(joint->x_off,joint->y_off,joint->z_off);
 
-
+        //cout<<joint->x_off<<", "<<joint->y_off<<", "<<joint->z_off<<"\n";
         point* a = new point(0,0,0);
         //cout<<"Frame "<<frame<<": ";
         //cout<<joint->name<<": "<<"Weight: "<<joint->weight<<": ";
@@ -370,7 +327,3 @@ void genPointCloud(JOINT* joint, HIERARCY* skeleton, int frame)
         }
         glPopMatrix();
 }
-
-
-
-

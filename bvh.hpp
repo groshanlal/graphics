@@ -6,6 +6,8 @@
 #include<string.h>
 #include<fstream>
 #include<vector>
+#include<GL/glut.h>
+
 
 using namespace std;
 
@@ -41,6 +43,8 @@ class point
                 cout<<endl;
             }
             */
+
+
 
             for(int i=0;i<4;i++)
             {
@@ -92,17 +96,14 @@ typedef struct
     int noJoints;
     vector <point> point_cloud;
     vector <float> weight;
-    string type;
-
-
 }
 HIERARCY;
 
 HIERARCY* showHierarchy();
 
-void switch_toTrans();
+//void switch_toTrans();
 
-void switch_toAct();
+//void switch_toAct();
 
 void realignXZ();
 
@@ -119,6 +120,3 @@ void loadMotion(HIERARCY* skeleton ,ifstream* file);
 void genPointCloud(JOINT* joint, HIERARCY* skeleton, int frame);
 
 #endif
-
-
-

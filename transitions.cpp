@@ -1,4 +1,4 @@
-#include<Windows.h>
+//#include<Windows.h>
 #include<GL/glut.h>
 
 #include<fstream>
@@ -7,27 +7,16 @@
 #include<string.h>
 #include<vector>
 
-#include "motion_graph.hpp"
+#include "transitions.hpp"
 
 #define PI 3.14159
 
 using namespace std;
 
-int transition_length;
-float* error;
-
-vector<float>local_min_i;
-vector<float>local_min_j;
-vector<float>local_min_val;
-
-vector<float>sw_local_min_i;
-vector<float>sw_local_min_j;
-vector<float>sw_local_min_val;
-
 void align(float* theta, float* x, float* z, int first, int second, HIERARCY* skeleton)
 {
 
-    transition_length=skeleton->frameRate/3;
+    int transition_length=skeleton->frameRate/3;
 
     float xf=0,zf=0,xs=0,zs=0;
 
@@ -79,31 +68,22 @@ void align(float* theta, float* x, float* z, int first, int second, HIERARCY* sk
 
 void errmatrix(HIERARCY* skeleton)
 {
-    transition_length=skeleton->frameRate/3;
+    int transition_length=skeleton->frameRate/3;
 
-    //cout<<transition_length<<endl;
-    //cout<<skeleton->noJoints<<endl;
+    float* error;
+
+    vector<float>local_min_i;
+    vector<float>local_min_j;
+    vector<float>local_min_val;
+
+    vector<float>sw_local_min_i;
+    vector<float>sw_local_min_j;
+    vector<float>sw_local_min_val;
+
 
     error = new float[(skeleton->noFrames - transition_length + 1)*(skeleton->noFrames - transition_length + 1)];
 
     float theta0, x0, z0;
-    /*
-    align(&theta0, &x0, &z0, 0, 10, skeleton);
-    cout<<theta0<<", "<<x0<<", "<<z0<<endl;
-    align(&theta0, &x0, &z0, 0, 20, skeleton);
-    cout<<theta0<<", "<<x0<<", "<<z0<<endl;
-    align(&theta0, &x0, &z0, 0, 30, skeleton);
-    cout<<theta0<<", "<<x0<<", "<<z0<<endl;
-    align(&theta0, &x0, &z0, 0, 40, skeleton);
-    cout<<theta0<<", "<<x0<<", "<<z0<<endl;
-
-    point a(1,2,3);
-    cout<<a.x<<", "<<a.y<<", "<<a.z<<endl;
-    point b = a.trans(PI/6, 3,5);
-    cout<<b.x<<", "<<b.y<<", "<<b.z<<endl;
-    */
-
-
 
     //cout<<skeleton->noFrames<<", "<<transition_length<<", "<<skeleton->noFrames-transition_length+1<<endl;
     for(int i=0;i<skeleton->noFrames-transition_length+1;i++)
@@ -122,7 +102,6 @@ void errmatrix(HIERARCY* skeleton)
                      e = e + w*(p1.x - p3.x)*(p1.x - p3.x);
                      e = e + w*(p1.y - p3.y)*(p1.y - p3.y);
                      e = e + w*(p1.z - p3.z)*(p1.z - p3.z);
-
             }
             //cout<<i<<": "<<j<<endl;
             //cout<<e<<",";
@@ -181,12 +160,57 @@ void errmatrix(HIERARCY* skeleton)
 
 
 
-
+    cout<<sw_local_min_i.size()<<endl;
     for(int i=0;i<sw_local_min_i.size();i++)
-        cout<<sw_local_min_i[i]<<", "<<sw_local_min_j[i]<<": "<<sw_local_min_val[i]<<endl;
-
-
-
-
+        cout<<sw_local_min_i[i]<<" "<<sw_local_min_j[i]<<" "<<endl;
 }
 
+
+float* interp_frames(int f1, int f2, HIERARCY* skeleton)
+{
+  float theta0, x0, z0;
+  align(&theta0, &x0, &z0, f1, f2, skeleton);
+  float* act_animation=skeleton->animation;
+  int transient_length = skeleton->frameRate/3;
+  float* trans_animation = new float[(transient_length)*(skeleton->totnumChannels)];
+  float alpha;
+  for(int i=0;i<transient_length;i++)
+  {
+      alpha = 2*((i+1)/transient_length)*((i+1)/transient_length)*((i+1)/transient_length) - 3*((i+1)/transient_length)*((i+1)/transient_length) + 1;
+
+      float x1,y1,z1;
+      float x2,y2,z2;
+
+      x2=act_animation[(f2+i)*(skeleton->totnumChannels)+0];
+      y2=act_animation[(f2+i)*(skeleton->totnumChannels)+1];
+      z2=act_animation[(f2+i)*(skeleton->totnumChannels)+2];
+
+      point a(x2,y2,z2);
+      //std::cout<<x2<<", "<<y2<<", "<<z2<<std::endl;
+      //std::cout<<theta0<<", "<<x0<<", "<<z0<<std::endl;
+
+      point b=a.trans(theta0, x0, z0);
+      x2=b.x;
+      y2=b.y;
+      z2=b.z;
+
+      x1=act_animation[(f1+i)*(skeleton->totnumChannels)+0];
+      y1=act_animation[(f1+i)*(skeleton->totnumChannels)+1];
+      z1=act_animation[(f1+i)*(skeleton->totnumChannels)+2];
+
+
+      trans_animation[(i)*(skeleton->totnumChannels)+0] = alpha*x1 + (1-alpha)*x2;
+      trans_animation[(i)*(skeleton->totnumChannels)+1] = alpha*y1 + (1-alpha)*y2;
+      trans_animation[(i)*(skeleton->totnumChannels)+2] = alpha*z1 + (1-alpha)*z2;
+
+      for(int j=3;j<skeleton->totnumChannels;j++)
+      {
+          float theta1 = act_animation[(f1+i)*(skeleton->totnumChannels)+ j];
+          float theta2 = act_animation[(f2+i)*(skeleton->totnumChannels)+ j];
+          trans_animation[(i)*(skeleton->totnumChannels)+j] = alpha*theta1 + (1-alpha)*theta2;
+      }
+  }
+
+  return trans_animation;
+
+}

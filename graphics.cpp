@@ -1,9 +1,9 @@
-#include <Windows.h>
-#include "GL\glut.h"
+//#include <Windows.h>
+#include "GL/glut.h"
 #include "time.h"
 
 #include "graphics.hpp"
-
+#include "MotionGraph.hpp"
 using namespace std;
 
 int frame = 0;
@@ -14,6 +14,11 @@ int mouseButton = 0;
 int moving, startx, starty;
 bool play = true;
 int realign=0;
+vector<float>theta;
+vector<float>x;
+vector<float>z;
+
+
 
 
 void mydisplay()
@@ -32,14 +37,9 @@ void mydisplay()
 
     glRotatef(angle2, 1.0, 0.0, 0.0);
     glRotatef(angle, 0.0, 1.0, 0.0);
-	glScalef(zoom,zoom,zoom);
-
-
-    //glRotatef(15,0,1,0);
-    //glRotatef(15,1,0,0);
+	  glScalef(zoom,zoom,zoom);
 
     drawFloor();
-
 
     glColor3f(0,1,0);
     glBegin(GL_POLYGON);
@@ -50,23 +50,17 @@ void mydisplay()
     glEnd();
 
 
-    for(int i=0;i<realign;i++)
+
+
+
+    for(int i=0;i+1<theta.size();i++)
     {
-        realignXZ();
+      glTranslatef(x[i],0,z[i]);
+      glRotatef(theta[i]/3.14159*180,0,1,0);
     }
 
-    /*
-    glBegin(GL_POLYGON);
-        glVertex3f(0,0,0);
-        glVertex3f(0,100,0);
-        glVertex3f(10,100,0);
-        glVertex3f(10,0,0);
-    glEnd();
-    */
 
-    //cout<<showHierarchy()->type<<": "<<frame<<endl;
     drawHierarchy(showHierarchy(), frame);
-
     //drawTransFrame(showHierarchy(),10, 200);
 
     glFlush();
@@ -77,7 +71,6 @@ void idle()
 {
     clock_t current_time = clock();
     clock_t end_time = current_time + CLOCKS_PER_SEC/showHierarchy()->frameRate;
-    //clock_t end_time = current_time + CLOCKS_PER_SEC/1;
 
 
     while(current_time<end_time)
@@ -86,34 +79,24 @@ void idle()
     if(play)
         frame++;
 
-
-
-
-
-    /*
-    if((frame>134)&&(showHierarchy()->type == "ACTUAL"))
+    if(frame>=getNoFrames())
     {
-        switch_toTrans();
+        nextEdge();
+        showHierarchy()->animation=getAnim();
+        float* r = getRealign();
+        theta.push_back(r[0]);
+        x.push_back(r[1]);
+        z.push_back(r[2]);
+        cout<<r[0]<<", "<<r[1]<<", "<<r[2]<<endl;
         frame=0;
         //exit(0);
     }
-
-    if((frame>39)&&(showHierarchy()->type == "TRANSIENT"))
-    {
-        switch_toAct();
-        frame=42;
-        realign++;
-        //exit(0);
-    }
-    */
-
-
-
+/*
     if(frame>=showHierarchy()->noFrames)
     {
-        frame=0;
-        //exit(0);
+        exit(0);
     }
+*/
 
 
     glutPostRedisplay();
@@ -161,7 +144,8 @@ void keyboard (unsigned char key, int x, int y)
 		case 'Q':
 		case 'q':
 			exit(0);
-		break;
+
+
 
 		default:
 		break;
@@ -169,5 +153,3 @@ void keyboard (unsigned char key, int x, int y)
 
 	glutPostRedisplay();
 }
-
-

@@ -1,9 +1,9 @@
 #include <iostream>
-#include <Windows.h>
-#include "GL\glut.h"
+//#include <Windows.h>
+#include "GL/glut.h"
 
 #include "render.hpp"
-#include "motion_graph.hpp"
+#include "transitions.hpp"
 
 using namespace std;
 
@@ -169,5 +169,3 @@ void drawJoint(JOINT* joint, HIERARCY* skeleton, int frame)
         }
         glPopMatrix();
 }
-
-
